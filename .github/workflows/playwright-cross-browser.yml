@@ -11,25 +11,18 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # ── Axe accessibility audit (runs once on Chromium) ─────────────────────────
-  # Serious and critical violations fail the build.
-  # Known violations are tracked in e2e/a11y-baseline.json and burned down over
-  # time. New violations beyond the baseline are never allowed through.
   a11y-audit:
     name: Axe accessibility audit
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node.js with pnpm
         uses: ./.github/actions/setup-node-pnpm
         with:
           working-directory: apps/web
 
-      # Browser versions are pinned in apps/web/package.json (@playwright/test version)
-      # and playwright.config.ts. The version is locked to ensure reproducible test runs.
-      # See PLAYWRIGHT_BROWSERS.md for version management details.
       - name: Install Playwright browsers (Chromium only)
         working-directory: apps/web
         run: pnpm exec playwright install chromium --with-deps
@@ -48,7 +41,6 @@ jobs:
           path: apps/web/test-results/a11y-audit/
           retention-days: 30
 
-  # ── Cross-browser functional tests ──────────────────────────────────────────
   playwright-tests:
     name: Playwright tests — ${{ matrix.project }}
     runs-on: ubuntu-latest
@@ -59,14 +51,11 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node.js with pnpm
         uses: ./.github/actions/setup-node-pnpm
 
-      # Browser versions are pinned in apps/web/package.json (@playwright/test version)
-      # and playwright.config.ts. The version is locked to ensure reproducible test runs.
-      # See PLAYWRIGHT_BROWSERS.md for version management details.
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps
 
