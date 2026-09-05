@@ -11,7 +11,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # ─── Workspace quality (lint + typecheck) ──────────────────────────────
   quality:
     name: Quality — ${{ matrix.workspace }}
     runs-on: ubuntu-latest
@@ -21,7 +20,7 @@ jobs:
         workspace: ['@hunty/web', 'mobile', '@hunty/types', '@hunty/ui', '@hunty/config']
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node.js with pnpm
         uses: ./.github/actions/setup-node-pnpm
@@ -29,13 +28,12 @@ jobs:
       - name: Lint and typecheck
         run: pnpm turbo run lint typecheck --filter=${{ matrix.workspace }}
 
-  # ─── Merge-conflict damage check ───────────────────────────────────────
   merge-damage-check:
     name: Merge Conflict Damage Check
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node.js with pnpm
         uses: ./.github/actions/setup-node-pnpm
@@ -45,7 +43,6 @@ jobs:
           find . -type f \( -name '*.ts' -o -name '*.tsx' \) ! -path '*/node_modules/*' -print0 | \
             xargs -0 -r npx --yes esbuild --outdir=/tmp/esbuild-parse-check --log-level=error
 
-  # ─── Workspace tests ──────────────────────────────────────────────────
   test:
     name: Tests — ${{ matrix.workspace }}
     runs-on: ubuntu-latest
@@ -55,7 +52,7 @@ jobs:
         workspace: ['@hunty/web', '@hunty/types', '@hunty/ui', 'mobile']
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node.js with pnpm
         uses: ./.github/actions/setup-node-pnpm
@@ -63,13 +60,12 @@ jobs:
       - name: Run tests
         run: pnpm turbo run test --filter=${{ matrix.workspace }}
 
-  # ─── Coverage (web only — only workspace with coverage config) ────────
   coverage:
     name: Coverage Report
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node.js with pnpm
         uses: ./.github/actions/setup-node-pnpm
@@ -103,14 +99,13 @@ jobs:
           fail_ci_if_error: true
           token: ${{ secrets.CODECOV_TOKEN }}
 
-  # ─── Mutation tests ────────────────────────────────────────────────────
   mutation:
     name: Mutation Tests
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node.js with pnpm
         uses: ./.github/actions/setup-node-pnpm
@@ -118,14 +113,13 @@ jobs:
       - name: Run mutation testing
         run: pnpm test:mutation
 
-  # ─── Build verification ────────────────────────────────────────────────
   build:
     name: Build Verification
     runs-on: ubuntu-latest
     needs: [quality, test]
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node.js with pnpm
         uses: ./.github/actions/setup-node-pnpm
@@ -137,14 +131,13 @@ jobs:
           SENTRY_ORG: ${{ vars.SENTRY_ORG }}
           SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
 
-  # ─── Visual regression tests ───────────────────────────────────────────
   visual-regression:
     name: Visual Regression Tests
     runs-on: ubuntu-latest
     needs: build
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node.js with pnpm
         uses: ./.github/actions/setup-node-pnpm
@@ -166,14 +159,13 @@ jobs:
             test-results/
           retention-days: 30
 
-  # ─── E2E tests ─────────────────────────────────────────────────────────
   e2e:
     name: E2E Tests
     runs-on: ubuntu-latest
     needs: build
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node.js with pnpm
         uses: ./.github/actions/setup-node-pnpm
@@ -193,7 +185,6 @@ jobs:
           path: playwright-report/
           retention-days: 30
 
-  # ─── CI summary ────────────────────────────────────────────────────────
   ci-summary:
     name: CI Summary
     runs-on: ubuntu-latest
